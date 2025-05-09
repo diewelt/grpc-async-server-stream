@@ -136,7 +136,7 @@ private:
             // initiation method. That's because we will get an event that the
             // request is in progress before we should (can?) start reading
             // the replies.
-            response_reader = parent_.stub_->AsyncSayHelloStreamReply(&context_, request, &parent_.cq_, (void*)this);
+            response_reader = parent_.stub_->AsyncSayHelloSvrStreamReply(&context_, request, &parent_.cq_, (void*)this);
         }
 
         bool HandleResponse(bool responseStatus) override {

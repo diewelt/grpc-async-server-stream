@@ -136,7 +136,7 @@ class CallDataSvrStream : public CallDataBase {
             : CallDataBase(service, cq), writer_(&ctx_), status_(SvrStreamStatus::START) {
             // Invoke the serving logic right away.
             ctx_.AsyncNotifyWhenDone((void*)this);
-            service_->RequestSayHelloStreamReply(&ctx_, &request_, &writer_, cq_, cq_, (void*)this);
+            service_->RequestSayHelloSvrStreamReply(&ctx_, &request_, &writer_, cq_, cq_, (void*)this);
 
             std::lock_guard<std::mutex> lock(g_stream_mutex);
             g_stream_instances.push_back(this);

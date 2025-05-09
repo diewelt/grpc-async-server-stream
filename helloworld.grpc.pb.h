@@ -59,14 +59,14 @@ class Greeter final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::helloworld::HelloReply>> PrepareAsyncSayHello(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::helloworld::HelloReply>>(PrepareAsyncSayHelloRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientReaderInterface< ::helloworld::HelloReply>> SayHelloStreamReply(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request) {
-      return std::unique_ptr< ::grpc::ClientReaderInterface< ::helloworld::HelloReply>>(SayHelloStreamReplyRaw(context, request));
+    std::unique_ptr< ::grpc::ClientReaderInterface< ::helloworld::HelloReply>> SayHelloSvrStreamReply(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request) {
+      return std::unique_ptr< ::grpc::ClientReaderInterface< ::helloworld::HelloReply>>(SayHelloSvrStreamReplyRaw(context, request));
     }
-    std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::helloworld::HelloReply>> AsyncSayHelloStreamReply(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq, void* tag) {
-      return std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::helloworld::HelloReply>>(AsyncSayHelloStreamReplyRaw(context, request, cq, tag));
+    std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::helloworld::HelloReply>> AsyncSayHelloSvrStreamReply(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::helloworld::HelloReply>>(AsyncSayHelloSvrStreamReplyRaw(context, request, cq, tag));
     }
-    std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::helloworld::HelloReply>> PrepareAsyncSayHelloStreamReply(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::helloworld::HelloReply>>(PrepareAsyncSayHelloStreamReplyRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::helloworld::HelloReply>> PrepareAsyncSayHelloSvrStreamReply(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::helloworld::HelloReply>>(PrepareAsyncSayHelloSvrStreamReplyRaw(context, request, cq));
     }
     virtual ::grpc::Status AddsNumbers(::grpc::ClientContext* context, const ::helloworld::ReqAddType& request, ::helloworld::RespAddType* response) = 0;
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::helloworld::RespAddType>> AsyncAddsNumbers(::grpc::ClientContext* context, const ::helloworld::ReqAddType& request, ::grpc::CompletionQueue* cq) {
@@ -81,7 +81,7 @@ class Greeter final {
       // Sends a greeting
       virtual void SayHello(::grpc::ClientContext* context, const ::helloworld::HelloRequest* request, ::helloworld::HelloReply* response, std::function<void(::grpc::Status)>) = 0;
       virtual void SayHello(::grpc::ClientContext* context, const ::helloworld::HelloRequest* request, ::helloworld::HelloReply* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      virtual void SayHelloStreamReply(::grpc::ClientContext* context, const ::helloworld::HelloRequest* request, ::grpc::ClientReadReactor< ::helloworld::HelloReply>* reactor) = 0;
+      virtual void SayHelloSvrStreamReply(::grpc::ClientContext* context, const ::helloworld::HelloRequest* request, ::grpc::ClientReadReactor< ::helloworld::HelloReply>* reactor) = 0;
       virtual void AddsNumbers(::grpc::ClientContext* context, const ::helloworld::ReqAddType* request, ::helloworld::RespAddType* response, std::function<void(::grpc::Status)>) = 0;
       virtual void AddsNumbers(::grpc::ClientContext* context, const ::helloworld::ReqAddType* request, ::helloworld::RespAddType* response, ::grpc::ClientUnaryReactor* reactor) = 0;
     };
@@ -91,9 +91,9 @@ class Greeter final {
    private:
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::helloworld::HelloReply>* AsyncSayHelloRaw(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::helloworld::HelloReply>* PrepareAsyncSayHelloRaw(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientReaderInterface< ::helloworld::HelloReply>* SayHelloStreamReplyRaw(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request) = 0;
-    virtual ::grpc::ClientAsyncReaderInterface< ::helloworld::HelloReply>* AsyncSayHelloStreamReplyRaw(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq, void* tag) = 0;
-    virtual ::grpc::ClientAsyncReaderInterface< ::helloworld::HelloReply>* PrepareAsyncSayHelloStreamReplyRaw(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientReaderInterface< ::helloworld::HelloReply>* SayHelloSvrStreamReplyRaw(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request) = 0;
+    virtual ::grpc::ClientAsyncReaderInterface< ::helloworld::HelloReply>* AsyncSayHelloSvrStreamReplyRaw(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq, void* tag) = 0;
+    virtual ::grpc::ClientAsyncReaderInterface< ::helloworld::HelloReply>* PrepareAsyncSayHelloSvrStreamReplyRaw(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::helloworld::RespAddType>* AsyncAddsNumbersRaw(::grpc::ClientContext* context, const ::helloworld::ReqAddType& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::helloworld::RespAddType>* PrepareAsyncAddsNumbersRaw(::grpc::ClientContext* context, const ::helloworld::ReqAddType& request, ::grpc::CompletionQueue* cq) = 0;
   };
@@ -107,14 +107,14 @@ class Greeter final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::helloworld::HelloReply>> PrepareAsyncSayHello(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::helloworld::HelloReply>>(PrepareAsyncSayHelloRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientReader< ::helloworld::HelloReply>> SayHelloStreamReply(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request) {
-      return std::unique_ptr< ::grpc::ClientReader< ::helloworld::HelloReply>>(SayHelloStreamReplyRaw(context, request));
+    std::unique_ptr< ::grpc::ClientReader< ::helloworld::HelloReply>> SayHelloSvrStreamReply(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request) {
+      return std::unique_ptr< ::grpc::ClientReader< ::helloworld::HelloReply>>(SayHelloSvrStreamReplyRaw(context, request));
     }
-    std::unique_ptr< ::grpc::ClientAsyncReader< ::helloworld::HelloReply>> AsyncSayHelloStreamReply(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq, void* tag) {
-      return std::unique_ptr< ::grpc::ClientAsyncReader< ::helloworld::HelloReply>>(AsyncSayHelloStreamReplyRaw(context, request, cq, tag));
+    std::unique_ptr< ::grpc::ClientAsyncReader< ::helloworld::HelloReply>> AsyncSayHelloSvrStreamReply(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncReader< ::helloworld::HelloReply>>(AsyncSayHelloSvrStreamReplyRaw(context, request, cq, tag));
     }
-    std::unique_ptr< ::grpc::ClientAsyncReader< ::helloworld::HelloReply>> PrepareAsyncSayHelloStreamReply(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncReader< ::helloworld::HelloReply>>(PrepareAsyncSayHelloStreamReplyRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncReader< ::helloworld::HelloReply>> PrepareAsyncSayHelloSvrStreamReply(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncReader< ::helloworld::HelloReply>>(PrepareAsyncSayHelloSvrStreamReplyRaw(context, request, cq));
     }
     ::grpc::Status AddsNumbers(::grpc::ClientContext* context, const ::helloworld::ReqAddType& request, ::helloworld::RespAddType* response) override;
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::helloworld::RespAddType>> AsyncAddsNumbers(::grpc::ClientContext* context, const ::helloworld::ReqAddType& request, ::grpc::CompletionQueue* cq) {
@@ -128,7 +128,7 @@ class Greeter final {
      public:
       void SayHello(::grpc::ClientContext* context, const ::helloworld::HelloRequest* request, ::helloworld::HelloReply* response, std::function<void(::grpc::Status)>) override;
       void SayHello(::grpc::ClientContext* context, const ::helloworld::HelloRequest* request, ::helloworld::HelloReply* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void SayHelloStreamReply(::grpc::ClientContext* context, const ::helloworld::HelloRequest* request, ::grpc::ClientReadReactor< ::helloworld::HelloReply>* reactor) override;
+      void SayHelloSvrStreamReply(::grpc::ClientContext* context, const ::helloworld::HelloRequest* request, ::grpc::ClientReadReactor< ::helloworld::HelloReply>* reactor) override;
       void AddsNumbers(::grpc::ClientContext* context, const ::helloworld::ReqAddType* request, ::helloworld::RespAddType* response, std::function<void(::grpc::Status)>) override;
       void AddsNumbers(::grpc::ClientContext* context, const ::helloworld::ReqAddType* request, ::helloworld::RespAddType* response, ::grpc::ClientUnaryReactor* reactor) override;
      private:
@@ -144,13 +144,13 @@ class Greeter final {
     class async async_stub_{this};
     ::grpc::ClientAsyncResponseReader< ::helloworld::HelloReply>* AsyncSayHelloRaw(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::helloworld::HelloReply>* PrepareAsyncSayHelloRaw(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientReader< ::helloworld::HelloReply>* SayHelloStreamReplyRaw(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request) override;
-    ::grpc::ClientAsyncReader< ::helloworld::HelloReply>* AsyncSayHelloStreamReplyRaw(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq, void* tag) override;
-    ::grpc::ClientAsyncReader< ::helloworld::HelloReply>* PrepareAsyncSayHelloStreamReplyRaw(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientReader< ::helloworld::HelloReply>* SayHelloSvrStreamReplyRaw(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request) override;
+    ::grpc::ClientAsyncReader< ::helloworld::HelloReply>* AsyncSayHelloSvrStreamReplyRaw(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq, void* tag) override;
+    ::grpc::ClientAsyncReader< ::helloworld::HelloReply>* PrepareAsyncSayHelloSvrStreamReplyRaw(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::helloworld::RespAddType>* AsyncAddsNumbersRaw(::grpc::ClientContext* context, const ::helloworld::ReqAddType& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::helloworld::RespAddType>* PrepareAsyncAddsNumbersRaw(::grpc::ClientContext* context, const ::helloworld::ReqAddType& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::internal::RpcMethod rpcmethod_SayHello_;
-    const ::grpc::internal::RpcMethod rpcmethod_SayHelloStreamReply_;
+    const ::grpc::internal::RpcMethod rpcmethod_SayHelloSvrStreamReply_;
     const ::grpc::internal::RpcMethod rpcmethod_AddsNumbers_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
@@ -161,7 +161,7 @@ class Greeter final {
     virtual ~Service();
     // Sends a greeting
     virtual ::grpc::Status SayHello(::grpc::ServerContext* context, const ::helloworld::HelloRequest* request, ::helloworld::HelloReply* response);
-    virtual ::grpc::Status SayHelloStreamReply(::grpc::ServerContext* context, const ::helloworld::HelloRequest* request, ::grpc::ServerWriter< ::helloworld::HelloReply>* writer);
+    virtual ::grpc::Status SayHelloSvrStreamReply(::grpc::ServerContext* context, const ::helloworld::HelloRequest* request, ::grpc::ServerWriter< ::helloworld::HelloReply>* writer);
     virtual ::grpc::Status AddsNumbers(::grpc::ServerContext* context, const ::helloworld::ReqAddType* request, ::helloworld::RespAddType* response);
   };
   template <class BaseClass>
@@ -185,22 +185,22 @@ class Greeter final {
     }
   };
   template <class BaseClass>
-  class WithAsyncMethod_SayHelloStreamReply : public BaseClass {
+  class WithAsyncMethod_SayHelloSvrStreamReply : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_SayHelloStreamReply() {
+    WithAsyncMethod_SayHelloSvrStreamReply() {
       ::grpc::Service::MarkMethodAsync(1);
     }
-    ~WithAsyncMethod_SayHelloStreamReply() override {
+    ~WithAsyncMethod_SayHelloSvrStreamReply() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status SayHelloStreamReply(::grpc::ServerContext* /*context*/, const ::helloworld::HelloRequest* /*request*/, ::grpc::ServerWriter< ::helloworld::HelloReply>* /*writer*/) override {
+    ::grpc::Status SayHelloSvrStreamReply(::grpc::ServerContext* /*context*/, const ::helloworld::HelloRequest* /*request*/, ::grpc::ServerWriter< ::helloworld::HelloReply>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestSayHelloStreamReply(::grpc::ServerContext* context, ::helloworld::HelloRequest* request, ::grpc::ServerAsyncWriter< ::helloworld::HelloReply>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestSayHelloSvrStreamReply(::grpc::ServerContext* context, ::helloworld::HelloRequest* request, ::grpc::ServerAsyncWriter< ::helloworld::HelloReply>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncServerStreaming(1, context, request, writer, new_call_cq, notification_cq, tag);
     }
   };
@@ -224,7 +224,7 @@ class Greeter final {
       ::grpc::Service::RequestAsyncUnary(2, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_SayHello<WithAsyncMethod_SayHelloStreamReply<WithAsyncMethod_AddsNumbers<Service > > > AsyncService;
+  typedef WithAsyncMethod_SayHello<WithAsyncMethod_SayHelloSvrStreamReply<WithAsyncMethod_AddsNumbers<Service > > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_SayHello : public BaseClass {
    private:
@@ -253,25 +253,25 @@ class Greeter final {
       ::grpc::CallbackServerContext* /*context*/, const ::helloworld::HelloRequest* /*request*/, ::helloworld::HelloReply* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_SayHelloStreamReply : public BaseClass {
+  class WithCallbackMethod_SayHelloSvrStreamReply : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_SayHelloStreamReply() {
+    WithCallbackMethod_SayHelloSvrStreamReply() {
       ::grpc::Service::MarkMethodCallback(1,
           new ::grpc::internal::CallbackServerStreamingHandler< ::helloworld::HelloRequest, ::helloworld::HelloReply>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::helloworld::HelloRequest* request) { return this->SayHelloStreamReply(context, request); }));
+                   ::grpc::CallbackServerContext* context, const ::helloworld::HelloRequest* request) { return this->SayHelloSvrStreamReply(context, request); }));
     }
-    ~WithCallbackMethod_SayHelloStreamReply() override {
+    ~WithCallbackMethod_SayHelloSvrStreamReply() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status SayHelloStreamReply(::grpc::ServerContext* /*context*/, const ::helloworld::HelloRequest* /*request*/, ::grpc::ServerWriter< ::helloworld::HelloReply>* /*writer*/) override {
+    ::grpc::Status SayHelloSvrStreamReply(::grpc::ServerContext* /*context*/, const ::helloworld::HelloRequest* /*request*/, ::grpc::ServerWriter< ::helloworld::HelloReply>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerWriteReactor< ::helloworld::HelloReply>* SayHelloStreamReply(
+    virtual ::grpc::ServerWriteReactor< ::helloworld::HelloReply>* SayHelloSvrStreamReply(
       ::grpc::CallbackServerContext* /*context*/, const ::helloworld::HelloRequest* /*request*/)  { return nullptr; }
   };
   template <class BaseClass>
@@ -301,7 +301,7 @@ class Greeter final {
     virtual ::grpc::ServerUnaryReactor* AddsNumbers(
       ::grpc::CallbackServerContext* /*context*/, const ::helloworld::ReqAddType* /*request*/, ::helloworld::RespAddType* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_SayHello<WithCallbackMethod_SayHelloStreamReply<WithCallbackMethod_AddsNumbers<Service > > > CallbackService;
+  typedef WithCallbackMethod_SayHello<WithCallbackMethod_SayHelloSvrStreamReply<WithCallbackMethod_AddsNumbers<Service > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_SayHello : public BaseClass {
@@ -321,18 +321,18 @@ class Greeter final {
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_SayHelloStreamReply : public BaseClass {
+  class WithGenericMethod_SayHelloSvrStreamReply : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_SayHelloStreamReply() {
+    WithGenericMethod_SayHelloSvrStreamReply() {
       ::grpc::Service::MarkMethodGeneric(1);
     }
-    ~WithGenericMethod_SayHelloStreamReply() override {
+    ~WithGenericMethod_SayHelloSvrStreamReply() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status SayHelloStreamReply(::grpc::ServerContext* /*context*/, const ::helloworld::HelloRequest* /*request*/, ::grpc::ServerWriter< ::helloworld::HelloReply>* /*writer*/) override {
+    ::grpc::Status SayHelloSvrStreamReply(::grpc::ServerContext* /*context*/, const ::helloworld::HelloRequest* /*request*/, ::grpc::ServerWriter< ::helloworld::HelloReply>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -375,22 +375,22 @@ class Greeter final {
     }
   };
   template <class BaseClass>
-  class WithRawMethod_SayHelloStreamReply : public BaseClass {
+  class WithRawMethod_SayHelloSvrStreamReply : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_SayHelloStreamReply() {
+    WithRawMethod_SayHelloSvrStreamReply() {
       ::grpc::Service::MarkMethodRaw(1);
     }
-    ~WithRawMethod_SayHelloStreamReply() override {
+    ~WithRawMethod_SayHelloSvrStreamReply() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status SayHelloStreamReply(::grpc::ServerContext* /*context*/, const ::helloworld::HelloRequest* /*request*/, ::grpc::ServerWriter< ::helloworld::HelloReply>* /*writer*/) override {
+    ::grpc::Status SayHelloSvrStreamReply(::grpc::ServerContext* /*context*/, const ::helloworld::HelloRequest* /*request*/, ::grpc::ServerWriter< ::helloworld::HelloReply>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestSayHelloStreamReply(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncWriter< ::grpc::ByteBuffer>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestSayHelloSvrStreamReply(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncWriter< ::grpc::ByteBuffer>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncServerStreaming(1, context, request, writer, new_call_cq, notification_cq, tag);
     }
   };
@@ -437,25 +437,25 @@ class Greeter final {
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_SayHelloStreamReply : public BaseClass {
+  class WithRawCallbackMethod_SayHelloSvrStreamReply : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_SayHelloStreamReply() {
+    WithRawCallbackMethod_SayHelloSvrStreamReply() {
       ::grpc::Service::MarkMethodRawCallback(1,
           new ::grpc::internal::CallbackServerStreamingHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const::grpc::ByteBuffer* request) { return this->SayHelloStreamReply(context, request); }));
+                   ::grpc::CallbackServerContext* context, const::grpc::ByteBuffer* request) { return this->SayHelloSvrStreamReply(context, request); }));
     }
-    ~WithRawCallbackMethod_SayHelloStreamReply() override {
+    ~WithRawCallbackMethod_SayHelloSvrStreamReply() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status SayHelloStreamReply(::grpc::ServerContext* /*context*/, const ::helloworld::HelloRequest* /*request*/, ::grpc::ServerWriter< ::helloworld::HelloReply>* /*writer*/) override {
+    ::grpc::Status SayHelloSvrStreamReply(::grpc::ServerContext* /*context*/, const ::helloworld::HelloRequest* /*request*/, ::grpc::ServerWriter< ::helloworld::HelloReply>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerWriteReactor< ::grpc::ByteBuffer>* SayHelloStreamReply(
+    virtual ::grpc::ServerWriteReactor< ::grpc::ByteBuffer>* SayHelloSvrStreamReply(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/)  { return nullptr; }
   };
   template <class BaseClass>
@@ -536,34 +536,34 @@ class Greeter final {
   };
   typedef WithStreamedUnaryMethod_SayHello<WithStreamedUnaryMethod_AddsNumbers<Service > > StreamedUnaryService;
   template <class BaseClass>
-  class WithSplitStreamingMethod_SayHelloStreamReply : public BaseClass {
+  class WithSplitStreamingMethod_SayHelloSvrStreamReply : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithSplitStreamingMethod_SayHelloStreamReply() {
+    WithSplitStreamingMethod_SayHelloSvrStreamReply() {
       ::grpc::Service::MarkMethodStreamed(1,
         new ::grpc::internal::SplitServerStreamingHandler<
           ::helloworld::HelloRequest, ::helloworld::HelloReply>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerSplitStreamer<
                      ::helloworld::HelloRequest, ::helloworld::HelloReply>* streamer) {
-                       return this->StreamedSayHelloStreamReply(context,
+                       return this->StreamedSayHelloSvrStreamReply(context,
                          streamer);
                   }));
     }
-    ~WithSplitStreamingMethod_SayHelloStreamReply() override {
+    ~WithSplitStreamingMethod_SayHelloSvrStreamReply() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status SayHelloStreamReply(::grpc::ServerContext* /*context*/, const ::helloworld::HelloRequest* /*request*/, ::grpc::ServerWriter< ::helloworld::HelloReply>* /*writer*/) override {
+    ::grpc::Status SayHelloSvrStreamReply(::grpc::ServerContext* /*context*/, const ::helloworld::HelloRequest* /*request*/, ::grpc::ServerWriter< ::helloworld::HelloReply>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with split streamed
-    virtual ::grpc::Status StreamedSayHelloStreamReply(::grpc::ServerContext* context, ::grpc::ServerSplitStreamer< ::helloworld::HelloRequest,::helloworld::HelloReply>* server_split_streamer) = 0;
+    virtual ::grpc::Status StreamedSayHelloSvrStreamReply(::grpc::ServerContext* context, ::grpc::ServerSplitStreamer< ::helloworld::HelloRequest,::helloworld::HelloReply>* server_split_streamer) = 0;
   };
-  typedef WithSplitStreamingMethod_SayHelloStreamReply<Service > SplitStreamedService;
-  typedef WithStreamedUnaryMethod_SayHello<WithSplitStreamingMethod_SayHelloStreamReply<WithStreamedUnaryMethod_AddsNumbers<Service > > > StreamedService;
+  typedef WithSplitStreamingMethod_SayHelloSvrStreamReply<Service > SplitStreamedService;
+  typedef WithStreamedUnaryMethod_SayHello<WithSplitStreamingMethod_SayHelloSvrStreamReply<WithStreamedUnaryMethod_AddsNumbers<Service > > > StreamedService;
 };
 
 }  // namespace helloworld

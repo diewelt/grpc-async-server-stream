@@ -23,7 +23,7 @@ namespace helloworld {
 
 static const char* Greeter_method_names[] = {
   "/helloworld.Greeter/SayHello",
-  "/helloworld.Greeter/SayHelloStreamReply",
+  "/helloworld.Greeter/SayHelloSvrStreamReply",
   "/helloworld.Greeter/AddsNumbers",
 };
 
@@ -35,7 +35,7 @@ std::unique_ptr< Greeter::Stub> Greeter::NewStub(const std::shared_ptr< ::grpc::
 
 Greeter::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
   : channel_(channel), rpcmethod_SayHello_(Greeter_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_SayHelloStreamReply_(Greeter_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
+  , rpcmethod_SayHelloSvrStreamReply_(Greeter_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
   , rpcmethod_AddsNumbers_(Greeter_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
@@ -62,20 +62,20 @@ void Greeter::Stub::async::SayHello(::grpc::ClientContext* context, const ::hell
   return result;
 }
 
-::grpc::ClientReader< ::helloworld::HelloReply>* Greeter::Stub::SayHelloStreamReplyRaw(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request) {
-  return ::grpc::internal::ClientReaderFactory< ::helloworld::HelloReply>::Create(channel_.get(), rpcmethod_SayHelloStreamReply_, context, request);
+::grpc::ClientReader< ::helloworld::HelloReply>* Greeter::Stub::SayHelloSvrStreamReplyRaw(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request) {
+  return ::grpc::internal::ClientReaderFactory< ::helloworld::HelloReply>::Create(channel_.get(), rpcmethod_SayHelloSvrStreamReply_, context, request);
 }
 
-void Greeter::Stub::async::SayHelloStreamReply(::grpc::ClientContext* context, const ::helloworld::HelloRequest* request, ::grpc::ClientReadReactor< ::helloworld::HelloReply>* reactor) {
-  ::grpc::internal::ClientCallbackReaderFactory< ::helloworld::HelloReply>::Create(stub_->channel_.get(), stub_->rpcmethod_SayHelloStreamReply_, context, request, reactor);
+void Greeter::Stub::async::SayHelloSvrStreamReply(::grpc::ClientContext* context, const ::helloworld::HelloRequest* request, ::grpc::ClientReadReactor< ::helloworld::HelloReply>* reactor) {
+  ::grpc::internal::ClientCallbackReaderFactory< ::helloworld::HelloReply>::Create(stub_->channel_.get(), stub_->rpcmethod_SayHelloSvrStreamReply_, context, request, reactor);
 }
 
-::grpc::ClientAsyncReader< ::helloworld::HelloReply>* Greeter::Stub::AsyncSayHelloStreamReplyRaw(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq, void* tag) {
-  return ::grpc::internal::ClientAsyncReaderFactory< ::helloworld::HelloReply>::Create(channel_.get(), cq, rpcmethod_SayHelloStreamReply_, context, request, true, tag);
+::grpc::ClientAsyncReader< ::helloworld::HelloReply>* Greeter::Stub::AsyncSayHelloSvrStreamReplyRaw(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq, void* tag) {
+  return ::grpc::internal::ClientAsyncReaderFactory< ::helloworld::HelloReply>::Create(channel_.get(), cq, rpcmethod_SayHelloSvrStreamReply_, context, request, true, tag);
 }
 
-::grpc::ClientAsyncReader< ::helloworld::HelloReply>* Greeter::Stub::PrepareAsyncSayHelloStreamReplyRaw(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncReaderFactory< ::helloworld::HelloReply>::Create(channel_.get(), cq, rpcmethod_SayHelloStreamReply_, context, request, false, nullptr);
+::grpc::ClientAsyncReader< ::helloworld::HelloReply>* Greeter::Stub::PrepareAsyncSayHelloSvrStreamReplyRaw(::grpc::ClientContext* context, const ::helloworld::HelloRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncReaderFactory< ::helloworld::HelloReply>::Create(channel_.get(), cq, rpcmethod_SayHelloSvrStreamReply_, context, request, false, nullptr);
 }
 
 ::grpc::Status Greeter::Stub::AddsNumbers(::grpc::ClientContext* context, const ::helloworld::ReqAddType& request, ::helloworld::RespAddType* response) {
@@ -120,7 +120,7 @@ Greeter::Service::Service() {
              ::grpc::ServerContext* ctx,
              const ::helloworld::HelloRequest* req,
              ::grpc::ServerWriter<::helloworld::HelloReply>* writer) {
-               return service->SayHelloStreamReply(ctx, req, writer);
+               return service->SayHelloSvrStreamReply(ctx, req, writer);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       Greeter_method_names[2],
@@ -144,7 +144,7 @@ Greeter::Service::~Service() {
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status Greeter::Service::SayHelloStreamReply(::grpc::ServerContext* context, const ::helloworld::HelloRequest* request, ::grpc::ServerWriter< ::helloworld::HelloReply>* writer) {
+::grpc::Status Greeter::Service::SayHelloSvrStreamReply(::grpc::ServerContext* context, const ::helloworld::HelloRequest* request, ::grpc::ServerWriter< ::helloworld::HelloReply>* writer) {
   (void) context;
   (void) request;
   (void) writer;

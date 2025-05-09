@@ -129,16 +129,16 @@ const char descriptor_table_protodef_helloworld_2eproto[] PROTOBUF_SECTION_VARIA
   "equest\022\014\n\004name\030\001 \001(\t\"\035\n\nHelloReply\022\017\n\007me"
   "ssage\030\001 \001(\t\"(\n\nReqAddType\022\014\n\004num1\030\001 \001(\005\022"
   "\014\n\004num2\030\002 \001(\005\"\032\n\013RespAddType\022\013\n\003num\030\001 \001("
-  "\0052\326\001\n\007Greeter\022>\n\010SayHello\022\030.helloworld.H"
-  "elloRequest\032\026.helloworld.HelloReply\"\000\022K\n"
-  "\023SayHelloStreamReply\022\030.helloworld.HelloR"
-  "equest\032\026.helloworld.HelloReply\"\0000\001\022>\n\013Ad"
-  "dsNumbers\022\026.helloworld.ReqAddType\032\027.hell"
-  "oworld.RespAddTypeb\006proto3"
+  "\0052\325\001\n\007Greeter\022<\n\010SayHello\022\030.helloworld.H"
+  "elloRequest\032\026.helloworld.HelloReply\022L\n\026S"
+  "ayHelloSvrStreamReply\022\030.helloworld.Hello"
+  "Request\032\026.helloworld.HelloReply0\001\022>\n\013Add"
+  "sNumbers\022\026.helloworld.ReqAddType\032\027.hello"
+  "world.RespAddTypeb\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_helloworld_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_helloworld_2eproto = {
-    false, false, 386, descriptor_table_protodef_helloworld_2eproto,
+    false, false, 385, descriptor_table_protodef_helloworld_2eproto,
     "helloworld.proto",
     &descriptor_table_helloworld_2eproto_once, nullptr, 0, 4,
     schemas, file_default_instances, TableStruct_helloworld_2eproto::offsets,
