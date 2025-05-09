@@ -134,13 +134,11 @@ const char descriptor_table_protodef_helloworld_2eproto[] PROTOBUF_SECTION_VARIA
   "\023SayHelloStreamReply\022\030.helloworld.HelloR"
   "equest\032\026.helloworld.HelloReply\"\0000\001\022>\n\013Ad"
   "dsNumbers\022\026.helloworld.ReqAddType\032\027.hell"
-  "oworld.RespAddTypeB6\n\033io.grpc.examples.h"
-  "elloworldB\017HelloWorldProtoP\001\242\002\003HLWb\006prot"
-  "o3"
+  "oworld.RespAddTypeb\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_helloworld_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_helloworld_2eproto = {
-    false, false, 442, descriptor_table_protodef_helloworld_2eproto,
+    false, false, 386, descriptor_table_protodef_helloworld_2eproto,
     "helloworld.proto",
     &descriptor_table_helloworld_2eproto_once, nullptr, 0, 4,
     schemas, file_default_instances, TableStruct_helloworld_2eproto::offsets,
