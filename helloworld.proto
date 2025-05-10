@@ -23,6 +23,8 @@ service Greeter {
 
   rpc SayHelloSvrStreamReply (HelloRequest) returns (stream HelloReply);
 
+  rpc SayHelloBidiStreamReply (stream HelloRequest) returns (stream HelloReply);
+
   rpc AddsNumbers(ReqAddType) returns (RespAddType);
 }
 

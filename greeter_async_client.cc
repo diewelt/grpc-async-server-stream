@@ -65,6 +65,7 @@ public:
 
     void createStreamRequest() {
         new AsyncClientCall(*this);
+        new AsyncStreamCall(*this);
     }
 
     void createRequest() {
@@ -194,6 +195,81 @@ private:
 
         //std::unique_ptr<ClientAsyncResponseReader<HelloReply>> response_reader;
         std::unique_ptr<ClientAsyncReaderInterface<HelloReply>> response_reader;
+    };
+
+    class AsyncStreamCall: public ResponseHandler {
+        enum CallStatus {CREATE, PROCESS, FINISH};
+        CallStatus callStatus_;
+        public:
+    
+            AsyncStreamCall(GreeterClient& parent): parent_(parent), callStatus_(CREATE) {
+                std::cout << "AsyncStreamCall constructor!!!" << std::endl;
+                HelloRequest request;
+                request.set_name("kyle");
+                // Initiate the async request.
+                // Note that this time, we have to supply the tag to the gRPC
+                // initiation method. That's because we will get an event that the
+                // request is in progress before we should (can?) start reading
+                // the replies.
+                // Note: In bidirectional streaming, you don’t pass the request when initiating the call — the client sends requests later using Write() or WriteAndFinish().
+                readerwriter_ = parent_.stub_->AsyncSayHelloBidiStreamReply(&context_, &parent_.cq_, (void*)this);
+            }
+    
+            bool HandleResponse(bool responseStatus) override {
+                if (responseStatus == true) {
+                    switch (callStatus_) {
+                    case CREATE:
+                        std::cout << "async CREATE in HandleResponse()!!!" << std::endl;
+                        if (responseStatus) {
+                            readerwriter_->Read(&reply_, (void*)this);
+                            std::cout << "async Greeter received: " << this << " : " << reply_.message() << std::endl;
+                            callStatus_ = PROCESS;
+                        } else {
+                            readerwriter_->Finish(&status, (void*)this);
+                            callStatus_ = FINISH;
+                        }
+                        break;
+                    case PROCESS:
+                    std::cout << "async PROCESS in HandleResponse()!!!" << std::endl;
+                        if (responseStatus) {
+                            std::cout << "async Greeter received: " << this << " : " << reply_.message() << std::endl;
+                            readerwriter_->Read(&reply_, (void*)this);
+                        } else {
+                            readerwriter_->Finish(&status, (void*)this);
+                            callStatus_ = FINISH;
+                        }
+                        break;
+                    case FINISH:
+                        if (status.ok()) {
+                            std::cout << "Server Response Completed: " << this << " CallData: " << this << std::endl;
+                        }
+                        else {
+                            std::cout << "RPC failed" << std::endl;
+                        }
+                        delete this;
+                    }
+                }
+                else
+                {
+                    std::cout << "async connection lost!!!" << std::endl;
+                }
+    
+                return true;
+            }
+    
+            GreeterClient& parent_;
+            // Context for the client. It could be used to convey extra information to
+            // the server and/or tweak certain RPC behaviors.
+            ClientContext context_;
+    
+            // Container for the data we expect from the server.
+            HelloReply reply_;
+    
+            // Storage for the status of the RPC upon completion.
+            Status status;
+    
+            //std::unique_ptr<ClientAsyncResponseReader<HelloReply>> response_reader;
+            std::unique_ptr<grpc::ClientAsyncReaderWriter<HelloRequest, HelloReply>> readerwriter_;
     };
 
     // Out of the passed in Channel comes the stub, stored here, our view of the

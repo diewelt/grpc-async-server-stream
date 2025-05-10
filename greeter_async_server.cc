@@ -29,6 +29,11 @@
 #include <grpc++/grpc++.h>
 #include <grpc/support/log.h>
 
+#include <grpcpp/server.h>
+#include <grpcpp/server_context.h>
+// #include <grpcpp/server_async_reader_writer.h> 1.38 이상
+#include <grpcpp/support/async_stream.h>
+
 #include "helloworld.grpc.pb.h"
 
 using grpc::Server;
@@ -49,8 +54,11 @@ int g_pool = 1;
 int g_port = 50051;
 
 // 전역 리스트로 활성 CallDataSvrStream 인스턴스를 추적
-std::mutex g_stream_mutex;
-std::vector<class CallDataSvrStream*> g_stream_instances;
+std::mutex g_svr_stream_mutex;
+std::vector<class CallDataSvrStream*> g_svr_stream_instances;
+
+std::mutex g_bidi_stream_mutex;
+std::vector<class CallDataBidiStream*> g_bidi_stream_instances;
 
 class CallDataBase {
     public:
@@ -138,16 +146,16 @@ class CallDataSvrStream : public CallDataBase {
             ctx_.AsyncNotifyWhenDone((void*)this);
             service_->RequestSayHelloSvrStreamReply(&ctx_, &request_, &writer_, cq_, cq_, (void*)this);
 
-            std::lock_guard<std::mutex> lock(g_stream_mutex);
-            g_stream_instances.push_back(this);
+            std::lock_guard<std::mutex> lock(g_svr_stream_mutex);
+            g_svr_stream_instances.push_back(this);
         }
 
         ~CallDataSvrStream() {
-            std::lock_guard<std::mutex> lock(g_stream_mutex);
-            g_stream_instances.erase(std::remove(g_stream_instances.begin(), g_stream_instances.end(), this), g_stream_instances.end());
+            std::lock_guard<std::mutex> lock(g_svr_stream_mutex);
+            g_svr_stream_instances.erase(std::remove(g_svr_stream_instances.begin(), g_svr_stream_instances.end(), this), g_svr_stream_instances.end());
         }
     
-        void sendEvent(const std::string& msg) {
+        void sendSvrEvent(const std::string& msg) {
             std::lock_guard<std::mutex> lock(m_mutex);
             if (status_ == SvrStreamStatus::READY) {
                 HelloReply reply;
@@ -181,6 +189,63 @@ class CallDataSvrStream : public CallDataBase {
         // Let's implement a tiny state machine with the following states.
         enum class SvrStreamStatus { START, READY, FINISH };
         SvrStreamStatus status_;
+        std::mutex m_mutex;
+};
+
+class CallDataBidiStream : public CallDataBase {
+    public:
+        // Take in the "service" instance (in this case representing an asynchronous
+        // server) and the completion queue "cq" used for asynchronous communication
+        // with the gRPC runtime.
+        CallDataBidiStream(Greeter::AsyncService* service, ServerCompletionQueue* cq)
+            : CallDataBase(service, cq), stream_(&ctx_), status_(BidiStreamStatus::START) {
+            // Invoke the serving logic right away.
+            ctx_.AsyncNotifyWhenDone((void*)this);
+            service_->RequestSayHelloBidiStreamReply(&ctx_, &stream_, cq_, cq_, (void*)this);
+
+            std::lock_guard<std::mutex> lock(g_bidi_stream_mutex);
+            g_bidi_stream_instances.push_back(this);
+        }
+
+        ~CallDataBidiStream() {
+            std::lock_guard<std::mutex> lock(g_bidi_stream_mutex);
+            g_bidi_stream_instances.erase(std::remove(g_bidi_stream_instances.begin(), g_bidi_stream_instances.end(), this), g_bidi_stream_instances.end());
+        }
+    
+        void sendBidiEvent(const std::string& msg) {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            if (status_ == BidiStreamStatus::READY) {
+                HelloReply reply;
+                reply.set_message(msg);
+                std::cout << "=========================== bidi stream message to be sent" << std::endl;
+                stream_.Write(reply, (void*)this); // Async write
+            }
+        }
+    
+        void Proceed(bool ok) override {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            switch (status_) {
+                case BidiStreamStatus::START:
+                    new CallDataBidiStream(service_, cq_);
+                    status_ = BidiStreamStatus::READY;
+                    break;
+                case BidiStreamStatus::READY:
+                    std::cout << "=========================== bidi stream message sent" << std::endl;
+                    break;
+                case BidiStreamStatus::FINISH:
+                    stream_.Finish(Status::OK, (void*)this);
+                    lock.unlock();
+                    delete this;
+                    break;
+            }
+        }
+
+    private:
+        // The means to get back to the client.
+        grpc::ServerAsyncReaderWriter<HelloReply, HelloRequest> stream_;
+        // Let's implement a tiny state machine with the following states.
+        enum class BidiStreamStatus { START, READY, FINISH };
+        BidiStreamStatus status_;
         std::mutex m_mutex;
 };
 
@@ -219,6 +284,7 @@ class ServerImpl final {
                 for (int j = 0; j < g_pool; ++j) {
                     new CallDataSayHello(&service_, m_cq[_cq_idx].get());
                     new CallDataSvrStream(&service_, m_cq[_cq_idx].get());
+                    new CallDataBidiStream(&service_, m_cq[_cq_idx].get());
                 }
                 _vec_threads.emplace_back(new std::thread(&ServerImpl::HandleRpcs, this, _cq_idx));
             }
@@ -264,16 +330,31 @@ const char* ParseCmdPara(char* argv, const char* para) {
     return p_target + std::strlen(para);
 }
 
-void SimulateExternalEvent() {
+void SimulateExternalSvrEvent() {
     std::thread([]() {
         int count = 0;
         while (true) {
             std::this_thread::sleep_for(std::chrono::seconds(5));
-            std::string event_data = "[Push Event] External Event #" + std::to_string(count++);
+            std::string event_data = "[Push Event] External Svr Event #" + std::to_string(count++);
 
-            std::lock_guard<std::mutex> lock(g_stream_mutex);
-            for (CallDataSvrStream* stream : g_stream_instances) {
-                stream->sendEvent(event_data);
+            std::lock_guard<std::mutex> lock(g_svr_stream_mutex);
+            for (CallDataSvrStream* stream : g_svr_stream_instances) {
+                stream->sendSvrEvent(event_data);
+            }
+        }
+    }).detach();
+}
+
+void SimulateExternalBidiEvent() {
+    std::thread([]() {
+        int count = 0;
+        while (true) {
+            std::this_thread::sleep_for(std::chrono::seconds(5));
+            std::string event_data = "[Push Event] External Bidi Event #" + std::to_string(count++);
+
+            std::lock_guard<std::mutex> lock(g_bidi_stream_mutex);
+            for (CallDataBidiStream* stream : g_bidi_stream_instances) {
+                stream->sendBidiEvent(event_data);
             }
         }
     }).detach();
@@ -291,7 +372,8 @@ int main(int argc, char** argv) {
     g_port = std::atoi(ParseCmdPara(argv[4], "--port="));
 
     ServerImpl server;
-    SimulateExternalEvent(); // 외부 이벤트 시뮬레이션 활성화
+    SimulateExternalSvrEvent();
+    SimulateExternalBidiEvent();
     server.Run();
 
     return 0;
