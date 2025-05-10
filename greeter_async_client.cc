@@ -59,7 +59,10 @@ public:
             // Verify that the request was completed successfully. Note that "ok"
             // corresponds solely to the request for updates introduced by Finish().
             std::cout << "Next returned: " << ok << std::endl;
-            responseHandler->HandleResponse(ok);
+            if (responseHandler != nullptr)
+            {
+                responseHandler->HandleResponse(ok);
+            }
         }
     }
 
@@ -214,7 +217,14 @@ private:
                 // Note: In bidirectional streaming, you don’t pass the request when initiating the call — the client sends requests later using Write() or WriteAndFinish().
                 readerwriter_ = parent_.stub_->AsyncSayHelloBidiStreamReply(&context_, &parent_.cq_, (void*)this);
             }
-    
+
+            ~AsyncStreamCall() {
+                if (writerThread_.joinable()) {
+                    isWriting_ = false;
+                    writerThread_.join();
+                }
+            }
+        
             bool HandleResponse(bool responseStatus) override {
                 if (responseStatus == true) {
                     switch (callStatus_) {
@@ -228,12 +238,26 @@ private:
                             readerwriter_->Finish(&status, (void*)this);
                             callStatus_ = FINISH;
                         }
+
+                        // Start writing thread after stream creation - 클라이언트 스트림 테스트용
+                        writerThread_ = std::thread([this]() {
+                            int count = 0;
+                            while (isWriting_) {
+                                HelloRequest req;
+                                req.Clear();
+                                req.set_name("client message #" + std::to_string(count++));
+                                std::this_thread::sleep_for(std::chrono::seconds(3));
+                                std::cout << "<<<<<<<<<<<<<<<<<<<< Client sending message: " << req.name() << std::endl;
+                                readerwriter_->Write(req, (void*)nullptr);  // Send message
+                            }
+                        });
+
                         break;
                     case PROCESS:
                     std::cout << "async PROCESS in HandleResponse()!!!" << std::endl;
                         if (responseStatus) {
-                            std::cout << "async Greeter received: " << this << " : " << reply_.message() << std::endl;
                             readerwriter_->Read(&reply_, (void*)this);
+                            std::cout << "async Greeter received: " << this << " : " << reply_.message() << std::endl;
                         } else {
                             readerwriter_->Finish(&status, (void*)this);
                             callStatus_ = FINISH;
@@ -270,6 +294,9 @@ private:
     
             //std::unique_ptr<ClientAsyncResponseReader<HelloReply>> response_reader;
             std::unique_ptr<grpc::ClientAsyncReaderWriter<HelloRequest, HelloReply>> readerwriter_;
+
+            std::thread writerThread_;
+            bool isWriting_ = true;
     };
 
     // Out of the passed in Channel comes the stub, stored here, our view of the

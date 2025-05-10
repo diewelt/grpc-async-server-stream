@@ -218,7 +218,8 @@ class CallDataBidiStream : public CallDataBase {
                 HelloReply reply;
                 reply.set_message(msg);
                 std::cout << "=========================== bidi stream message to be sent" << std::endl;
-                stream_.Write(reply, (void*)this); // Async write
+                // don't register call handler, leave it as null so that Proceed() will not be executed
+                stream_.Write(reply, nullptr); // Async write
             }
         }
     
@@ -226,11 +227,14 @@ class CallDataBidiStream : public CallDataBase {
             std::unique_lock<std::mutex> lock(m_mutex);
             switch (status_) {
                 case BidiStreamStatus::START:
+                    std::cout << "=========================== bidi stream req rcvd" << std::endl;
+                    stream_.Read(&request_, (void*)this); // 이것이 반드시 필요
                     new CallDataBidiStream(service_, cq_);
                     status_ = BidiStreamStatus::READY;
                     break;
                 case BidiStreamStatus::READY:
-                    std::cout << "=========================== bidi stream message sent" << std::endl;
+                    stream_.Read(&request_, (void*)this);
+                    std::cout << "=========================== bidi stream message rcvd: " << request_.name() << std::endl;
                     break;
                 case BidiStreamStatus::FINISH:
                     stream_.Finish(Status::OK, (void*)this);
@@ -304,6 +308,7 @@ class ServerImpl final {
             bool ok;
             while (m_cq[cq_idx]->Next(&tag, &ok))
             {
+                std::cout << "=========================== cq Next called" << std::endl;
                 // Block waiting to read the next event from the completion queue. The
                 // event is uniquely identified by its tag, which in this case is the
                 // memory address of a CallDataUnary instance.
@@ -312,7 +317,10 @@ class ServerImpl final {
                 //GPR_ASSERT(cq_->Next(&tag, &ok));
                 CallDataBase* _p_ins = (CallDataBase*)tag;
 
-                _p_ins->Proceed(ok);
+                if (_p_ins != nullptr)
+                {
+                    _p_ins->Proceed(ok);
+                }
             }
         }
     
@@ -372,8 +380,8 @@ int main(int argc, char** argv) {
     g_port = std::atoi(ParseCmdPara(argv[4], "--port="));
 
     ServerImpl server;
-    SimulateExternalSvrEvent();
-    SimulateExternalBidiEvent();
+//    SimulateExternalSvrEvent(); // 서버 스트림 테스트용
+    SimulateExternalBidiEvent();  // bidi 스트림 테스트용
     server.Run();
 
     return 0;
