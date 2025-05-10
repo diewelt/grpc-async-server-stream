@@ -10,6 +10,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 find_package(gRPC REQUIRED)
 find_package(Protobuf REQUIRED)
 
+# Add these lines near the top or before add_executable
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
+
 include_directories(${Protobuf_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})

@@ -174,6 +174,12 @@ class GrpcService
                 void Proceed(bool ok) override
                 {
                     std::unique_lock<std::mutex> lock(m_mutex);
+
+                    if (!ok) {
+                        status_ = SvrStreamStatus::FINISH;
+                        return;
+                    }
+
                     switch (status_)
                     {
                         case SvrStreamStatus::START:
@@ -187,6 +193,7 @@ class GrpcService
                             writer_.Finish(Status::OK, (void*)this);
                             lock.unlock();
                             delete this;
+                            status_ = SvrStreamStatus::START;
                             break;
                     }
                 }
@@ -239,6 +246,12 @@ class GrpcService
                 void Proceed(bool ok) override
                 {
                     std::unique_lock<std::mutex> lock(m_mutex);
+
+                    if (!ok) {
+                        status_ = BidiStreamStatus::FINISH;
+                        return;
+                    }
+
                     switch (status_)
                     {
                         case BidiStreamStatus::START:
@@ -252,18 +265,22 @@ class GrpcService
                             std::cout << "=========================== bidi stream message rcvd: " << request_.name() << std::endl;
                             break;
                         case BidiStreamStatus::FINISH:
-                            stream_.Finish(Status::OK, (void*)this);
-                            lock.unlock();
+                            std::cout << "=========================== bidi stream closing" << std::endl;
+                            stream_.Finish(Status::OK, this);
+                            status_ = BidiStreamStatus::DESTROY;
+                            break;
+                        case BidiStreamStatus::DESTROY:
+                            std::cout << "=========================== bidi stream destroying" << std::endl;
                             delete this;
                             break;
                     }
                 }
-        
+
         private:
             // The means to get back to the client.
             grpc::ServerAsyncReaderWriter<HelloReply, HelloRequest> stream_;
             // Let's implement a tiny state machine with the following states.
-            enum class BidiStreamStatus { START, READY, FINISH };
+            enum class BidiStreamStatus { START, READY, FINISH, DESTROY };
             BidiStreamStatus status_;
             std::mutex m_mutex;
     };
@@ -335,8 +352,14 @@ class ServerImpl final
                 for (int j = 0; j < g_pool; ++j)
                 {
                     new GrpcService::CallDataSayHello(&asyncService_, m_cq[_cq_idx].get());
-                    new GrpcService::CallDataSvrStream(&asyncService_, m_cq[_cq_idx].get());
-                    new GrpcService::CallDataBidiStream(&asyncService_, m_cq[_cq_idx].get());
+                    if (g_testStream == SvrStreamStatus::TEST_SVR_STREAM)
+                    {
+                        new GrpcService::CallDataSvrStream(&asyncService_, m_cq[_cq_idx].get());
+                    }
+                    else
+                    {
+                        new GrpcService::CallDataBidiStream(&asyncService_, m_cq[_cq_idx].get());
+                    }
                 }
                 _vec_threads.emplace_back(new std::thread(&ServerImpl::HandleRpcs, this, _cq_idx));
             }
@@ -359,18 +382,31 @@ class ServerImpl final
             bool ok;
             while (m_cq[cq_idx]->Next(&tag, &ok))
             {
-                std::cout << "=========================== cq Next called" << std::endl;
-                // Block waiting to read the next event from the completion queue. The
-                // event is uniquely identified by its tag, which in this case is the
-                // memory address of a CallDataUnary instance.
-                // The return value of Next should always be checked. This return value
-                // tells us whether there is any kind of event or cq_ is shutting down.
-                //GPR_ASSERT(cq_->Next(&tag, &ok));
-                GrpcService::CallDataBase* _p_ins = (GrpcService::CallDataBase*)tag;
-
-                if (_p_ins != nullptr)
+                if (ok == true)
                 {
-                    _p_ins->Proceed(ok);
+                    std::cout << "=========================== cq Next called" << std::endl;
+                    // Block waiting to read the next event from the completion queue. The
+                    // event is uniquely identified by its tag, which in this case is the
+                    // memory address of a CallDataUnary instance.
+                    // The return value of Next should always be checked. This return value
+                    // tells us whether there is any kind of event or cq_ is shutting down.
+                    //GPR_ASSERT(cq_->Next(&tag, &ok));
+                    GrpcService::CallDataBase* _p_ins = (GrpcService::CallDataBase*)tag;
+
+                    if (_p_ins != nullptr)
+                    {
+                        std::cout << "=========================== proceed()" << std::endl;
+                        _p_ins->Proceed(ok);
+                    }
+                }
+                else
+                {
+                    GrpcService::CallDataBase* _p_ins = (GrpcService::CallDataBase*)tag;
+
+                    if (_p_ins != nullptr)
+                    {
+                        _p_ins->Proceed(ok);
+                    }
                 }
             }
         }
@@ -382,6 +418,11 @@ class ServerImpl final
 
 const char* ParseCmdPara(char* argv, const char* para)
 {
+    if (argv == nullptr)
+    {
+        return nullptr;
+    }
+
     auto p_target = std::strstr(argv, para);
     if (p_target == nullptr)
     {
@@ -430,7 +471,7 @@ void SimulateExternalBidiEvent()
     }).detach();
 }
 
-ServerImpl::SvrStreamStatus ServerImpl::g_testStream = ServerImpl::SvrStreamStatus::TEST_SVR_STREAM; // test server stream;
+ServerImpl::SvrStreamStatus ServerImpl::g_testStream = ServerImpl::SvrStreamStatus::TEST_BIDI_STREAM; // test bidi stream by default
 int ServerImpl::g_thread_num = 1;
 int ServerImpl::g_cq_num = 1;
 int ServerImpl::g_pool = 1;
@@ -443,7 +484,7 @@ int main(int argc, char** argv)
         std::cout << "Usage: ./program --test=[svr/bidi] --thread=xx --cq=xx --pool=xx --port=xx";
     }
 
-    const char *szTestStream = ParseCmdPara(argv[2], "--test=");
+    const char *szTestStream = ParseCmdPara(argv[1], "--test=");
     const char *szThreadNum = ParseCmdPara(argv[2], "--thread=");
     const char *szCqNum = ParseCmdPara(argv[3], "--cq=");
     const char *szPoolNum =ParseCmdPara(argv[4], "--pool=");
@@ -485,10 +526,12 @@ int main(int argc, char** argv)
 
     if (ServerImpl::g_testStream == ServerImpl::SvrStreamStatus::TEST_SVR_STREAM)
     {
+        std::cout << "SimulateExternalSvrEvent() is running" << std::endl;
         SimulateExternalSvrEvent(); // to test server stream
     }
     else
     {
+        std::cout << "SimulateExternalBidiEvent() is running" << std::endl;
         SimulateExternalBidiEvent();  // to test bidi stream
     }
 
